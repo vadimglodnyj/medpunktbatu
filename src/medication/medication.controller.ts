@@ -12,7 +12,13 @@ import { MedicationService } from './medication.service';
 import { Medication } from './entities/medication.entity';
 import { CreateMedicationDto } from './dto/create-medication.dto';
 import { UpdateMedicationDto } from './dto/update-medication.dto';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt.guard';
+import { RolesGuard } from '../auth/roles/roles.guard';
+import { RoleEnum } from '../users/entities/user.entity';
+import { Roles } from '../auth/roles/roles.decorator';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('medications')
 export class MedicationController {
   constructor(private readonly medicationService: MedicationService) {}
@@ -28,7 +34,9 @@ export class MedicationController {
   }
 
   @Post()
-  create(@Body() createMedicationDto: CreateMedicationDto): Promise<Medication> {
+  create(
+    @Body() createMedicationDto: CreateMedicationDto,
+  ): Promise<Medication> {
     return this.medicationService.create(createMedicationDto);
   }
 
@@ -41,6 +49,7 @@ export class MedicationController {
   }
 
   @Delete(':id')
+  @Roles(RoleEnum.Admin, RoleEnum.ChiefMedic)
   remove(@Param('id', ParseIntPipe) id: number): Promise<{ message: string }> {
     return this.medicationService.remove(id);
   }
